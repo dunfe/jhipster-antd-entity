@@ -1,0 +1,1 @@
+# Jhipster Antd Entity Application
