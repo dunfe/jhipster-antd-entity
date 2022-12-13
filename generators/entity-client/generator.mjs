@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import EntityClientGenerator from 'generator-jhipster/esm/generators/entity-client';
 import {
   PRIORITY_PREFIX,
@@ -7,6 +6,7 @@ import {
   POST_WRITING_PRIORITY,
   END_PRIORITY,
 } from 'generator-jhipster/esm/priorities';
+const writeFiles = import('./files.cjs');
 
 export default class extends EntityClientGenerator {
   constructor(args, opts, features) {
@@ -16,7 +16,7 @@ export default class extends EntityClientGenerator {
 
     if (!this.options.jhipsterContext) {
       throw new Error(
-        `This is a JHipster blueprint and should be used only like ${chalk.yellow('jhipster --blueprints jhipster-antd-entity')}`
+        `This is a JHipster blueprint and should be used only like jhipster --blueprints jhipster-antd-entity')}`
       );
     }
 
@@ -32,37 +32,7 @@ export default class extends EntityClientGenerator {
   get [WRITING_PRIORITY]() {
     return {
       async writingTemplateTask() {
-        await this.writeFiles({
-          sections: {
-            files: [
-              {
-                templates: {
-                  react: {
-                    src: {
-                      main: {
-                        webapp: {
-                          app: {
-                            entities: [
-                              'entity-delete-dialog.tsx.ejs',
-                              'entity-detail.tsx.ejs',
-                              'entity-update.tsx.ejs',
-                              'entity.model.ts.ejs',
-                              'entity.reducer.ts.ejs',
-                              'entity.tsx.ejs',
-                              'index.tsx.ejs',
-                              'react_validators.ejs',
-                            ],
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            ],
-          },
-          context: this,
-        });
+        (await writeFiles).writeFiles.call(this);
       },
     };
   }

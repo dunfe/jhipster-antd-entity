@@ -110,7 +110,7 @@ import { mapIdList } from 'app/shared/util/entity-utils';
 <%_ } _%>
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-export const <%= entityReactName %>Update = (props: RouteComponentProps<{id: string}>) => {
+export const <%= entityReactName %>Update = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -234,9 +234,8 @@ _%>
               id="<%= entityFileName %>-<%= primaryKey.fields[0].fieldName %>"
               label={translate('<%= primaryKey.fields[0].fieldTranslationKey %>')}
               rules={[{ required: true }]}
-              disable="true"
             >
-              <Input />
+              <Input disabled/>
             </Form.Item>
             : null
           }
@@ -354,7 +353,7 @@ _%>
             ]}
             >
 
-            <Select showSearch filterOption={(input, option) => option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}>
+            <Select showSearch filterOption={(input, option) => (option?.label.toString().toLowerCase() ?? '').includes(input)}>
               <%_ if (rel.relationshipManyToOne || (rel.relationshipOneToOne && ownerSide)) { _%>
                   {<%= otherEntityNamePlural %>.map(otherEntity => {
                     return <Select.Option key={otherEntity.<%= otherEntityPkName %>} value={otherEntity.<%= otherEntityPkName %>}>{otherEntity.<%= otherEntityField %>}</Select.Option>
@@ -372,7 +371,7 @@ _%>
             id="<%= entityFileName %>-<%= relationshipName %>"
             name="<%= relationshipFieldNamePlural %>"
             >
-              <Select showSearch filterOption={(input, option) => option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}
+              <Select showSearch filterOption={(input, option) => (option?.label.toString().toLowerCase() ?? '').includes(input)}
                 mode="multiple"
                 allowClear
                 style={{ width: '100%' }}
