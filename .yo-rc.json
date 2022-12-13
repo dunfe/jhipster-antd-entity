@@ -1,0 +1,27 @@
+{
+  "generator-jhipster": {
+    "additionalSubGenerators": "",
+    "baseName": "jhipster-antd-entity",
+    "cli": true,
+    "generators": {
+      "entity-client": {
+        "command": false,
+        "priorities": ["default", "writing", "postWriting", "end"],
+        "sbs": true,
+        "written": true
+      },
+      "server": {
+        "command": false,
+        "priorities": ["postWriting"],
+        "sbs": true,
+        "written": true
+      }
+    },
+    "jhipsterVersion": "7.9.3",
+    "localBlueprint": false,
+    "prettierDefaultIndent": 2,
+    "projectName": "Jhipster Antd Entity Application",
+    "skipCommitHook": true,
+    "subGenerators": ["entity-client", "server"]
+  }
+}
