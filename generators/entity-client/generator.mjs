@@ -1,12 +1,16 @@
-import EntityClientGenerator from 'generator-jhipster/esm/generators/entity-client';
+import EntityClientGenerator from "generator-jhipster/esm/generators/entity-client";
 import {
   PRIORITY_PREFIX,
   DEFAULT_PRIORITY,
   WRITING_PRIORITY,
   POST_WRITING_PRIORITY,
-  END_PRIORITY,
-} from 'generator-jhipster/esm/priorities';
-const writeFiles = import('./files.cjs');
+  POST_WRITING_ENTITIES_PRIORITY,
+  END_PRIORITY, WRITING_ENTITIES_PRIORITY
+} from "generator-jhipster/esm/priorities";
+import _ from 'lodash';
+import chalk from 'chalk';
+import { addToMenu } from "generator-jhipster/generators/entity-client/files.js";
+const files = import("./files.cjs");
 
 export default class extends EntityClientGenerator {
   constructor(args, opts, features) {
@@ -24,28 +28,35 @@ export default class extends EntityClientGenerator {
   }
 
   get [DEFAULT_PRIORITY]() {
-    return {
-      async defaultTemplateTask() {},
-    };
-  }
-
-  get [WRITING_PRIORITY]() {
-    return {
-      async writingTemplateTask() {
-        (await writeFiles).writeFiles.call(this);
-      },
-    };
+    if (this.delegateToBlueprint) return {};
+    return this._default();
   }
 
   get [POST_WRITING_PRIORITY]() {
     return {
-      async postWritingTemplateTask() {},
+      async addToMenu() {
+        if (this.skipClient) return undefined;
+        return (await files).addToMenu.call(this);
+      }
     };
   }
 
-  get [END_PRIORITY]() {
+  get [POST_WRITING_ENTITIES_PRIORITY]() {
     return {
-      async endTemplateTask() {},
+      async postWritingTemplateTask() {
+        this.addToMenu = null;
+      },
+      async addToMenu() {
+        if (this.skipClient) return undefined;
+        return (await files).addToMenu.call(this);
+      }
     };
   }
-}
+
+    get [END_PRIORITY]() {
+      return {
+        async endTemplateTask() {
+        }
+      };
+    }
+  }

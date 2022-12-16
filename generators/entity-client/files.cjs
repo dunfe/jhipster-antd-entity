@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2021 the original author or authors from the JHipster project.
+ * Copyright 2013-2022 the original author or authors from the JHipster project.
  *
  * This file is part of the JHipster project, see https://www.jhipster.tech/
  * for more information.
@@ -16,114 +16,54 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const constants = require('generator-jhipster/generators/generator-constants');
-
-/* Constants use throughout */
-const { REACT_DIR } = constants;
-
-const CLIENT_REACT_TEMPLATES_DIR = 'react';
-
-/**
- * The default is to use a file path string. It implies use of the template method.
- * For any other config an object { file:.., method:.., template:.. } can be used
- */
-
-const reactFiles = {
-  client: [
-    {
-      condition: generator => !generator.embedded,
-      path: REACT_DIR,
-      templates: [
-        {
-          file: 'entities/entity-detail.tsx',
-          method: 'processJsx',
-          renameTo: generator => `entities/${generator.entityFolderName}/${generator.entityFileName}-detail.tsx`,
-        },
-        {
-          file: 'entities/entity.tsx',
-          method: 'processJsx',
-          renameTo: generator => `entities/${generator.entityFolderName}/${generator.entityFileName}.tsx`,
-        },
-        {
-          file: 'entities/entity.reducer.ts',
-          renameTo: generator => `entities/${generator.entityFolderName}/${generator.entityFileName}.reducer.ts`,
-        },
-        {
-          file: 'entities/index.tsx',
-          method: 'processJsx',
-          renameTo: generator => `entities/${generator.entityFolderName}/index.tsx`,
-        },
-      ],
-    },
-    {
-      path: REACT_DIR,
-      templates: [
-        {
-          file: 'entities/entity.model.ts',
-          renameTo: generator => `shared/model/${generator.entityModelFileName}.model.ts`,
-        },
-      ],
-    },
-    {
-      condition: generator => !generator.readOnly && !generator.embedded,
-      path: REACT_DIR,
-      templates: [
-        {
-          file: 'entities/entity-delete-dialog.tsx',
-          method: 'processJsx',
-          renameTo: generator => `entities/${generator.entityFolderName}/${generator.entityFileName}-delete-dialog.tsx`,
-        },
-        {
-          file: 'entities/entity-update.tsx',
-          method: 'processJsx',
-          renameTo: generator => `entities/${generator.entityFolderName}/${generator.entityFileName}-update.tsx`,
-        },
-      ],
-    },
-  ],
-};
-
-function addSampleRegexTestingStrings(generator) {
-  generator.fields.forEach(field => {
-    if (field.fieldValidateRulesPattern !== undefined) {
-      const randExp = field.createRandexp();
-      field.fieldValidateSampleString = randExp.gen();
-      field.fieldValidateModifiedString = randExp.gen();
-    }
-  });
-}
-
-function writeFiles() {
-  return {
-    writeClientFiles() {
-      if (
-        this.skipClient ||
-        (this.jhipsterConfig.microfrontend && this.jhipsterConfig.applicationType === 'gateway' && this.microserviceName)
-      )
-        return undefined;
-      if (this.protractorTests) {
-        addSampleRegexTestingStrings(this);
-      }
-
-      let files;
-      let clientMainSrcDir;
-      let templatesDir;
-
-      if (this.clientFramework === 'react') {
-        files = reactFiles;
-        // eslint-disable-next-line no-unused-vars
-        clientMainSrcDir = REACT_DIR;
-        templatesDir = CLIENT_REACT_TEMPLATES_DIR;
-      }
-
-      if (!files) return undefined;
-
-      return this.writeFilesToDisk(files, templatesDir);
-    },
-  };
-}
-
+const _ = require("lodash");
+const chalk = require("chalk");
+const { ANGULAR_X: ANGULAR, REACT, VUE } = require("generator-jhipster/jdl/jhipster/client-framework-types.js");
 module.exports = {
-  writeFiles,
-  reactFiles,
+  addToMenu,
 };
+
+function addToMenu() {
+  if (this.skipClient) return;
+
+  if (!this.embedded) {
+    this.addEntityToModule();
+
+    const clientFramework = this.clientFramework;
+    const routerName = this.entityPage;
+    const { enableTranslation } = this.enableTranslation;
+    const { entityTranslationKeyMenu } = this.entityTranslationKeyMenu;
+    const entityTranslationValue = this.entityClassHumanized ?? _.startCase(routerName);
+
+    if (clientFramework === ANGULAR) {
+      this.needleApi.clientAngular.addEntityToMenu(
+        routerName,
+        enableTranslation,
+        entityTranslationKeyMenu,
+        entityTranslationValue,
+        this.jhiPrefix
+      );
+    } else if (clientFramework === REACT) {
+      this.addEntityToMenu = function (routerName, enableTranslation, entityTranslationKeyMenu, entityTranslationValue = _.startCase(routerName)) {
+        const errorMessage = `${chalk.yellow('Reference to ') + routerName} ${chalk.yellow('not added to menu.\n')}`;
+        const entityMenuPath = `${this.CLIENT_MAIN_SRC_DIR}app/entities/menu.tsx`;
+        const label = this.jhipsterContext.stripMargin(`|<a href="/${routerName}" target="_blank" rel="noopener noreferrer">
+                                                          |${enableTranslation ? `<Translate contentKey="global.menu.entities.${entityTranslationKeyMenu}" />` : `${entityTranslationValue}`}
+                                                          |</a>`);
+        const entityEntry = JSON.stringify({
+          label,
+          key: routerName,
+        }) + ",";
+
+        const rewriteFileModel = this.needleApi.clientReact.generateFileModel(entityMenuPath,
+          'jhipster-needle-add-entity-to-menu', entityEntry);
+        this.needleApi.clientReact.addBlockContentToFile(rewriteFileModel, errorMessage);
+      }
+
+      this.addEntityToMenu(routerName, enableTranslation, entityTranslationKeyMenu, entityTranslationValue);
+
+    } else if (clientFramework === VUE) {
+      this.needleApi.clientVue.addEntityToMenu(routerName, enableTranslation, entityTranslationKeyMenu, entityTranslationValue);
+    }
+  }
+}
